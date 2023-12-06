@@ -1,3 +1,3 @@
-const bookshelfs = [];
+const books = [];
 
-module.exports = bookshelfs;
+module.exports = books;

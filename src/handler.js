@@ -14,8 +14,8 @@ const addHandler = (request, h) => {
     } = request.payload;
     const id = nanoid(16);
     const finished = readPage === pageCount ? true : false;
-    const insertAt = new Date().toISOString();
-    const updateAt = insertAt;
+    const insertedAt = new Date().toISOString();
+    const updatedAt = insertedAt;
     const newBook = {
         id,
         name,
@@ -27,8 +27,8 @@ const addHandler = (request, h) => {
         readPage,
         finished,
         reading,
-        insertAt,
-        updateAt,
+        insertedAt,
+        updatedAt,
     };
     if (
         newBook.name !== undefined &&
@@ -37,11 +37,11 @@ const addHandler = (request, h) => {
     ) {
         books.push(newBook);
     }
-    const isSuccess = books.filter((book) => book.id).length > 0;
+    const isSuccess = books.filter((book) => book.id === newBook.id).length > 0;
     if (isSuccess) {
         const response = h.response({
             status: "success",
-            message: "Buku berhasil di tambahkan",
+            message: "Buku berhasil ditambahkan",
             data: {
                 bookId: id,
             },
@@ -51,7 +51,7 @@ const addHandler = (request, h) => {
     } else if (newBook.name === undefined || newBook.name === "") {
         const response = h.response({
             status: "fail",
-            message: "Gagal memuat buku. mohon isi nama buku",
+            message: "Gagal menambahkan buku. Mohon isi nama buku",
         });
         response.code(400);
         return response;
@@ -93,12 +93,75 @@ const getBookByIdHandler = (request, h) => {
     return response;
 };
 
-const getAllBookHandler = () => ({
-    status: "success",
-    data: {
-        books,
-    },
-});
+const getAllBookHandler = (request, h) => {
+    const newBooks = [];
+    const querys = request.query;
+    if (querys.reading) {
+        const filterBooks = books.filter((b) => b.reading == querys.reading);
+        for (const iterator of filterBooks) {
+            const { id, name, publisher } = iterator;
+            const newData = { id, name, publisher };
+            newBooks.push(newData);
+        }
+
+        const response = h.response({
+            status: "success",
+            data: {
+                books: newBooks,
+            },
+        });
+        response.code(200);
+        return response;
+    } else if (querys.name) {
+        let names = querys.name.toLowerCase();
+        const filterBooks = books.filter((b) =>
+            b.name.toLowerCase().includes(names)
+        );
+        for (const iterator of filterBooks) {
+            const { id, name, publisher } = iterator;
+            const newData = { id, name, publisher };
+            newBooks.push(newData);
+        }
+        const response = h.response({
+            status: "success",
+            data: {
+                books: newBooks,
+            },
+        });
+        response.code(200);
+        return response;
+    } else if (querys.finished) {
+        const filterBooks = books.filter((b) => b.finished == querys.finished);
+        for (const iterator of filterBooks) {
+            const { id, name, publisher } = iterator;
+            const newData = { id, name, publisher };
+            newBooks.push(newData);
+        }
+
+        const response = h.response({
+            status: "success",
+            data: {
+                books: newBooks,
+            },
+        });
+        response.code(200);
+        return response;
+    }
+    for (const iterator of books) {
+        const { id, name, publisher } = iterator;
+        const newData = { id, name, publisher };
+        newBooks.push(newData);
+    }
+
+    const response = h.response({
+        status: "success",
+        data: {
+            books: newBooks,
+        },
+    });
+    response.code(200);
+    return response;
+};
 
 const editByIdHandler = (request, h) => {
     const { bookId } = request.params;
@@ -112,7 +175,7 @@ const editByIdHandler = (request, h) => {
         readPage,
         reading,
     } = request.payload;
-    const updateAt = new Date().toISOString();
+    const updatedAt = new Date().toISOString();
     const finished = readPage === pageCount ? true : false;
     const index = books.findIndex((b) => b.id === bookId);
     if (name === undefined) {
@@ -141,12 +204,12 @@ const editByIdHandler = (request, h) => {
             pageCount,
             readPage,
             reading,
-            updateAt,
+            updatedAt,
             finished,
         };
         const response = h.response({
             status: "success",
-            message: "Buku berhasil di perbaharui",
+            message: "Buku berhasil diperbarui",
         });
         response.code(200);
         return response;
